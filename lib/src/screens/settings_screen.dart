@@ -7,11 +7,11 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 
-import '../src/push_notifications_manager.dart';
-import '../src/utils/api_utils.dart';
-import '../src/utils/consts.dart';
-import '../src/utils/pref_util.dart';
-import '../src/widgets/common.dart';
+import '../push_notifications_manager.dart';
+import '../utils/api_utils.dart';
+import '../utils/consts.dart';
+import '../utils/pref_util.dart';
+import '../widgets/common.dart';
 
 class SettingsScreen extends StatelessWidget {
   final CubeUser currentUser;

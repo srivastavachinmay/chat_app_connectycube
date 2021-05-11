@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:connectycube_sdk/connectycube_chat.dart';
 
 import 'chat_dialog_screen.dart';
-import '../src/new_group_dialog_screen.dart';
-import '../src/utils/api_utils.dart';
-import '../src/utils/consts.dart';
-import '../src/widgets/common.dart';
+import 'new_group_dialog_screen.dart';
+import '../utils/api_utils.dart';
+import '../utils/consts.dart';
+import '../widgets/common.dart';
 
 class CreateChatScreen extends StatefulWidget {
   final CubeUser _cubeUser;
@@ -38,7 +38,7 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
         appBar: AppBar(
           automaticallyImplyLeading: true,
           title: Text(
-            'Logged in as ${currentUser.login}',
+            'Hello ${currentUser.login}!',
           ),
         ),
         body: BodyLayout(currentUser),

@@ -6,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 
 import 'chat_dialog_screen.dart';
-import '../src/utils/api_utils.dart';
-import '../src/utils/consts.dart';
-import '../src/widgets/common.dart';
+import '../utils/api_utils.dart';
+import '../utils/consts.dart';
+import '../widgets/common.dart';
 
 class NewGroupDialogScreen extends StatelessWidget {
   final CubeUser currentUser;

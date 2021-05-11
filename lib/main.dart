@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 
-import 'src/chat_details_screen.dart';
-import 'src/chat_dialog_screen.dart';
-import 'src/login_screen.dart';
+import 'src/screens/chat_details_screen.dart';
+import 'src/screens/chat_dialog_screen.dart';
+import 'src/screens/login_screen.dart';
 import 'src/push_notifications_manager.dart';
-import 'src/select_dialog_screen.dart';
-import 'src/settings_screen.dart';
+import 'src/screens/select_dialog_screen.dart';
+import 'src/screens/settings_screen.dart';
 import 'src/utils/configs.dart' as config;
 import 'src/utils/consts.dart';
 import 'src/utils/pref_util.dart';

@@ -1,14 +1,15 @@
 import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 
-import 'push_notifications_manager.dart';
-import 'utils/api_utils.dart';
-import 'utils/consts.dart';
-import 'utils/pref_util.dart';
+import '../push_notifications_manager.dart';
+import '../utils/api_utils.dart';
+import '../utils/consts.dart';
+import '../utils/pref_util.dart';
 
 class LoginScreen extends StatelessWidget {
   static const String TAG = "LoginScreen";
@@ -317,37 +318,37 @@ class LoginPageState extends State<LoginPage> {
     log("_goDialogScreen");
 
     // TODO replace with code below after fix https://github.com/FirebaseExtended/flutterfire/issues/4898
-    // FirebaseMessaging.instance.getInitialMessage().then((remoteMessage) {
-    //   log("getInitialMessage, remoteMessage: $remoteMessage");
-    //
-    //   if (remoteMessage == null || remoteMessage.data == null) {
-    //     Navigator.pushReplacementNamed(
-    //       context,
-    //       'select_dialog',
-    //       arguments: {USER_ARG_NAME: cubeUser},
-    //     );
-    //   } else {
-    //     Map<String, dynamic> payloadObject = remoteMessage.data;
-    //     String dialogId = payloadObject['dialog_id'];
-    //
-    //     log("getNotificationAppLaunchDetails, dialog_id: $dialogId");
-    //
-    //     getDialogs({'id': dialogId}).then((dialogs) {
-    //       if (dialogs?.items != null && dialogs.items.isNotEmpty ?? false) {
-    //         CubeDialog dialog = dialogs.items.first;
-    //         Navigator.pushReplacementNamed(context, 'chat_dialog',
-    //             arguments: {USER_ARG_NAME: cubeUser, DIALOG_ARG_NAME: dialog});
-    //       }
-    //     });
-    //   }
-    // }).catchError((onError) {
-    //   log("getNotificationAppLaunchDetails, error: $onError");
-    //   Navigator.pushReplacementNamed(
-    //     context,
-    //     'select_dialog',
-    //     arguments: {USER_ARG_NAME: cubeUser},
-    //   );
-    // });
+    FirebaseMessaging.instance.getInitialMessage().then((remoteMessage) {
+      log("getInitialMessage, remoteMessage: $remoteMessage");
+
+      if (remoteMessage == null || remoteMessage.data == null) {
+        Navigator.pushReplacementNamed(
+          context,
+          'select_dialog',
+          arguments: {USER_ARG_NAME: cubeUser},
+        );
+      } else {
+        Map<String, dynamic> payloadObject = remoteMessage.data;
+        String dialogId = payloadObject['dialog_id'];
+
+        log("getNotificationAppLaunchDetails, dialog_id: $dialogId");
+
+        getDialogs({'id': dialogId}).then((dialogs) {
+          if (dialogs?.items != null && dialogs.items.isNotEmpty ?? false) {
+            CubeDialog dialog = dialogs.items.first;
+            Navigator.pushReplacementNamed(context, 'chat_dialog',
+                arguments: {USER_ARG_NAME: cubeUser, DIALOG_ARG_NAME: dialog});
+          }
+        });
+      }
+    }).catchError((onError) {
+      log("getNotificationAppLaunchDetails, error: $onError");
+      Navigator.pushReplacementNamed(
+        context,
+        'select_dialog',
+        arguments: {USER_ARG_NAME: cubeUser},
+      );
+    });
 
     FlutterLocalNotificationsPlugin()
         .getNotificationAppLaunchDetails()

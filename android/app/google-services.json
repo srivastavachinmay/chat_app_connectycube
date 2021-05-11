@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "191371190711",
+    "project_id": "chat-connectycube",
+    "storage_bucket": "chat-connectycube.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191371190711:android:cddecd57f2e4db88eac832",
+        "android_client_info": {
+          "package_name": "com.connectycube.flutter.chat_sample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "191371190711-0cch7j5bstgju8ets13uqkfjk9ceh3vh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR9Hr_shU1tXEjmh-uL1SY1lHL_5LPpT0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "191371190711-0cch7j5bstgju8ets13uqkfjk9ceh3vh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

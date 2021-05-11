@@ -1,5 +1,5 @@
-import '../src/utils/consts.dart';
-import '../src/widgets/common.dart';
+import '../utils/consts.dart';
+import '../widgets/common.dart';
 import 'package:connectycube_sdk/connectycube_chat.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
