@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 import 'package:connectycube_sdk/src/chat/models/message_status_model.dart';
 import 'package:connectycube_sdk/src/chat/models/typing_status_model.dart';
-import 'package:swipe_to/swipe_to.dart';
 
 import 'chat_details_screen.dart';
 import '../utils/consts.dart';
@@ -20,26 +19,29 @@ import '../widgets/loading.dart';
 
 class ChatDialogScreen extends StatefulWidget {
   final CubeUser _cubeUser;
-  final CubeDialog _cubeDialog;
+  CubeDialog _cubeDialog;
 
-  ChatDialogScreen(this._cubeUser, this._cubeDialog,);
+  ChatDialogScreen(
+    this._cubeUser,
+    this._cubeDialog,
+  );
 
   @override
   _ChatDialogScreenState createState() => _ChatDialogScreenState();
 }
 
 class _ChatDialogScreenState extends State<ChatDialogScreen> {
-  AppBar _appBar;
+  static AppBar _appBar;
+  bool _messageSelected = false;
+  CubeMessage _message;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _setAppBar() {
     _appBar = AppBar(
       title: Text(
         widget._cubeDialog.name != null ? widget._cubeDialog.name : '',
@@ -55,21 +57,75 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
         ),
       ],
     );
-    return Scaffold(
-      appBar: _appBar,
-      body: ChatScreen(
-          widget._cubeUser, widget._cubeDialog, (CubeMessage message) {
-        setState(() {
-          if (message != null)
-            _appBar = AppBar(
+    return _appBar;
+  }
 
-              actions: [
-                IconButton(onPressed: () {}, icon: Icon(Icons.push_pin_sharp),)
-              ],
-            );
-        });
-      }),
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        print("=========================================================");
+        print(_messageSelected);
+        if (_messageSelected) {
+          setState(() {
+            _messageSelected = !_messageSelected;
+          });
+
+          print(_messageSelected);
+          return false;
+        }
+        print(_messageSelected);
+        return false;
+      },
+      child: Scaffold(
+        appBar: _messageSelected ? _modifyAppBar(_message) : _setAppBar(),
+        body: ChatScreen(widget._cubeUser, widget._cubeDialog,
+            (CubeMessage message) {
+          setState(() {
+            _messageSelected = !_messageSelected;
+            _message = message;
+          });
+          _modifyAppBar(message);
+        }),
+      ),
     );
+  }
+
+  Widget _modifyAppBar(CubeMessage message) {
+    for (int i = 0; i < 10; i++) {
+      print(i);
+      print(_messageSelected);
+    }
+    return _appBar = AppBar(
+      actions: [
+        IconButton(
+          onPressed: _pinnedMessages,
+          icon: Icon(Icons.push_pin_sharp),
+        )
+      ],
+    );
+  }
+
+  _pinnedMessages() {
+    print(
+        "--------------------------------------------------------------------");
+    print(widget._cubeDialog.pinnedMessagesIds);
+    UpdateDialogParams updateDialogParams = UpdateDialogParams();
+    widget._cubeDialog.pinnedMessagesIds.contains(_message.messageId)
+        ? widget._cubeDialog.pinnedMessagesIds.remove(_message.messageId)
+        : widget._cubeDialog.pinnedMessagesIds.add(_message.messageId);
+
+    updateDialogParams.addPinnedMsgIds =
+        widget._cubeDialog.pinnedMessagesIds.toSet();
+    updateDialog(widget._cubeDialog.dialogId, updateDialogParams.getUpdateDialogParams()).then((dialog) {
+      widget._cubeDialog = dialog;
+      setState(() {
+        _messageSelected = !_messageSelected;
+      });
+    }).onError((error, stackTrace) {
+      print(error);
+    });
+    print(widget._cubeDialog.pinnedMessagesIds);
   }
 
   _chatDetails(BuildContext context) async {
@@ -93,12 +149,13 @@ class ChatScreen extends StatefulWidget {
   ChatScreen(this._cubeUser, this._cubeDialog, this._modifyAppBar);
 
   @override
-  State createState() => ChatScreenState(_cubeUser, _cubeDialog);
+  State createState() => ChatScreenState(_cubeUser, _cubeDialog, _modifyAppBar);
 }
 
 class ChatScreenState extends State<ChatScreen> {
   final CubeUser _cubeUser;
   final CubeDialog _cubeDialog;
+  final Function(CubeMessage) _modifyAppBar;
   final Map<int, CubeUser> _occupants = Map();
 
   File imageFile;
@@ -121,7 +178,7 @@ class ChatScreenState extends State<ChatScreen> {
   List<CubeMessage> _unreadMessages = [];
   List<CubeMessage> _unsentMessages = [];
 
-  ChatScreenState(this._cubeUser, this._cubeDialog);
+  ChatScreenState(this._cubeUser, this._cubeDialog, this._modifyAppBar);
 
   @override
   void initState() {
@@ -240,9 +297,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   CubeMessage createCubeMsg() {
     var message = CubeMessage();
-    message.dateSent = DateTime
-        .now()
-        .millisecondsSinceEpoch ~/ 1000;
+    message.dateSent = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     message.markable = true;
     message.saveToHistory = true;
     return message;
@@ -253,6 +308,7 @@ class ChatScreenState extends State<ChatScreen> {
     textEditingController.clear();
     await _cubeDialog.sendMessage(message);
     message.senderId = _cubeUser.id;
+    message.properties = {"pinnedMessage": "false"};
     addMessageToListView(message);
     listScrollController.animateTo(0.0,
         duration: Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -260,7 +316,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   updateReadDeliveredStatusMessage(MessageStatus status, bool isRead) {
     CubeMessage msg = listMessage.firstWhere(
-            (msg) => msg.messageId == status.messageId,
+        (msg) => msg.messageId == status.messageId,
         orElse: () => null);
     if (msg == null) return;
     if (isRead)
@@ -312,10 +368,6 @@ class ChatScreenState extends State<ChatScreen> {
       ),
       onWillPop: onBackPress,
     );
-  }
-
-  void _modifyAppbar() {
-
   }
 
   Widget buildItem(int index, CubeMessage message) {
@@ -439,114 +491,112 @@ class ChatScreenState extends State<ChatScreen> {
         children: <Widget>[
           isHeaderView() ? getHeaderDateWidget() : SizedBox.shrink(),
           InkWell(
-            onLongPress: widget._modifyAppBar(message),
+            onLongPress: () => _modifyAppBar(message), //_modifyAppBar(message),
             child: Row(
               children: <Widget>[
                 message.attachments?.isNotEmpty ?? false
-                // Image
+                    // Image
                     ? Container(
-                  child: FlatButton(
-                    child: Material(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            CachedNetworkImage(
-                              placeholder: (context, url) =>
-                                  Container(
-                                    child: CircularProgressIndicator(
-                                      valueColor:
-                                      AlwaysStoppedAnimation<Color>(
-                                          themeColor),
+                        child: FlatButton(
+                          child: Material(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  CachedNetworkImage(
+                                    placeholder: (context, url) => Container(
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                themeColor),
+                                      ),
+                                      width: 200.0,
+                                      height: 200.0,
+                                      padding: EdgeInsets.all(70.0),
+                                      decoration: BoxDecoration(
+                                        color: greyColor2,
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(8.0),
+                                        ),
+                                      ),
                                     ),
-                                    width: 200.0,
-                                    height: 200.0,
-                                    padding: EdgeInsets.all(70.0),
-                                    decoration: BoxDecoration(
-                                      color: greyColor2,
+                                    errorWidget: (context, url, error) =>
+                                        Material(
+                                      child: Image.asset(
+                                        'images/img_not_available.jpeg',
+                                        width: 200.0,
+                                        height: 200.0,
+                                        fit: BoxFit.cover,
+                                      ),
                                       borderRadius: BorderRadius.all(
                                         Radius.circular(8.0),
                                       ),
+                                      clipBehavior: Clip.hardEdge,
                                     ),
+                                    imageUrl: message.attachments.first.url,
+                                    width: 200.0,
+                                    height: 200.0,
+                                    fit: BoxFit.cover,
                                   ),
-                              errorWidget: (context, url, error) =>
-                                  Material(
-                                    child: Image.asset(
-                                      'images/img_not_available.jpeg',
-                                      width: 200.0,
-                                      height: 200.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(8.0),
-                                    ),
-                                    clipBehavior: Clip.hardEdge,
-                                  ),
-                              imageUrl: message.attachments.first.url,
-                              width: 200.0,
-                              height: 200.0,
-                              fit: BoxFit.cover,
-                            ),
-                            getDateWidget(),
-                            getReadDeliveredWidget(),
-                          ]),
-                      borderRadius:
-                      BorderRadius.all(Radius.circular(8.0)),
-                      clipBehavior: Clip.hardEdge,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  FullPhoto(
-                                      url: message.attachments.first.url)));
-                    },
-                    padding: EdgeInsets.all(0),
-                  ),
-                  margin: EdgeInsets.only(
-                      bottom: isLastMessageRight(index) ? 20.0 : 10.0,
-                      right: 10.0),
-                )
-                    : message.body != null && message.body.isNotEmpty
-                // Text
-                    ? Flexible(
-                  child: Container(
-                    padding:
-                    EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                    decoration: BoxDecoration(
-                        color: greyColor2,
-                        borderRadius: BorderRadius.circular(8.0)),
-                    margin: EdgeInsets.only(
-                        bottom:
-                        isLastMessageRight(index) ? 20.0 : 10.0,
-                        right: 10.0),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            message.body,
-                            style: TextStyle(color: primaryColor),
+                                  getDateWidget(),
+                                  getReadDeliveredWidget(),
+                                ]),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(8.0)),
+                            clipBehavior: Clip.hardEdge,
                           ),
-                          getDateWidget(),
-                          getReadDeliveredWidget(),
-                        ]),
-                  ),
-                )
-                    : Container(
-                  child: Text(
-                    "Empty",
-                    style: TextStyle(color: primaryColor),
-                  ),
-                  padding:
-                  EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                  width: 200.0,
-                  decoration: BoxDecoration(
-                      color: greyColor2,
-                      borderRadius: BorderRadius.circular(8.0)),
-                  margin: EdgeInsets.only(
-                      bottom: isLastMessageRight(index) ? 20.0 : 10.0,
-                      right: 10.0),
-                ),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => FullPhoto(
+                                        url: message.attachments.first.url)));
+                          },
+                          padding: EdgeInsets.all(0),
+                        ),
+                        margin: EdgeInsets.only(
+                            bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                            right: 10.0),
+                      )
+                    : message.body != null && message.body.isNotEmpty
+                        // Text
+                        ? Flexible(
+                            child: Container(
+                              padding:
+                                  EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                              decoration: BoxDecoration(
+                                  color: greyColor2,
+                                  borderRadius: BorderRadius.circular(8.0)),
+                              margin: EdgeInsets.only(
+                                  bottom:
+                                      isLastMessageRight(index) ? 20.0 : 10.0,
+                                  right: 10.0),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      message.body,
+                                      style: TextStyle(color: primaryColor),
+                                    ),
+                                    getDateWidget(),
+                                    getReadDeliveredWidget(),
+                                  ]),
+                            ),
+                          )
+                        : Container(
+                            child: Text(
+                              "Empty",
+                              style: TextStyle(color: primaryColor),
+                            ),
+                            padding:
+                                EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                            width: 200.0,
+                            decoration: BoxDecoration(
+                                color: greyColor2,
+                                borderRadius: BorderRadius.circular(8.0)),
+                            margin: EdgeInsets.only(
+                                bottom: isLastMessageRight(index) ? 20.0 : 10.0,
+                                right: 10.0),
+                          ),
               ],
               mainAxisAlignment: MainAxisAlignment.end,
             ),
@@ -560,15 +610,15 @@ class ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: <Widget>[
             isHeaderView() ? getHeaderDateWidget() : SizedBox.shrink(),
-            SwipeTo(
-              onRightSwipe: () {},
+            InkWell(
+              onLongPress: () => _modifyAppBar(message),
               child: Row(
                 children: <Widget>[
                   Material(
                     child: CircleAvatar(
                       backgroundImage: _occupants[message.senderId]?.avatar !=
-                          null &&
-                          _occupants[message.senderId].avatar.isNotEmpty
+                                  null &&
+                              _occupants[message.senderId].avatar.isNotEmpty
                           ? NetworkImage(_occupants[message.senderId].avatar)
                           : null,
                       backgroundColor: greyColor2,
@@ -589,102 +639,100 @@ class ChatScreenState extends State<ChatScreen> {
                   ),
                   message.attachments?.isNotEmpty ?? false
                       ? Container(
-                    child: FlatButton(
-                      child: Material(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CachedNetworkImage(
-                                placeholder: (context, url) =>
-                                    Container(
-                                      child: CircularProgressIndicator(
-                                        valueColor:
-                                        AlwaysStoppedAnimation<Color>(
-                                            themeColor),
+                          child: FlatButton(
+                            child: Material(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CachedNetworkImage(
+                                      placeholder: (context, url) => Container(
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  themeColor),
+                                        ),
+                                        width: 200.0,
+                                        height: 200.0,
+                                        padding: EdgeInsets.all(70.0),
+                                        decoration: BoxDecoration(
+                                          color: greyColor2,
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(8.0),
+                                          ),
+                                        ),
                                       ),
-                                      width: 200.0,
-                                      height: 200.0,
-                                      padding: EdgeInsets.all(70.0),
-                                      decoration: BoxDecoration(
-                                        color: greyColor2,
+                                      errorWidget: (context, url, error) =>
+                                          Material(
+                                        child: Image.asset(
+                                          'images/img_not_available.jpeg',
+                                          width: 200.0,
+                                          height: 200.0,
+                                          fit: BoxFit.cover,
+                                        ),
                                         borderRadius: BorderRadius.all(
                                           Radius.circular(8.0),
                                         ),
+                                        clipBehavior: Clip.hardEdge,
                                       ),
+                                      imageUrl: message.attachments.first.url,
+                                      width: 200.0,
+                                      height: 200.0,
+                                      fit: BoxFit.cover,
                                     ),
-                                errorWidget: (context, url, error) =>
-                                    Material(
-                                      child: Image.asset(
-                                        'images/img_not_available.jpeg',
-                                        width: 200.0,
-                                        height: 200.0,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      borderRadius: BorderRadius.all(
-                                        Radius.circular(8.0),
-                                      ),
-                                      clipBehavior: Clip.hardEdge,
-                                    ),
-                                imageUrl: message.attachments.first.url,
-                                width: 200.0,
-                                height: 200.0,
-                                fit: BoxFit.cover,
-                              ),
-                              getDateWidget(),
-                            ]),
-                        borderRadius:
-                        BorderRadius.all(Radius.circular(8.0)),
-                        clipBehavior: Clip.hardEdge,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    FullPhoto(
-                                        url: message.attachments.first.url)));
-                      },
-                      padding: EdgeInsets.all(0),
-                    ),
-                    margin: EdgeInsets.only(left: 10.0),
-                  )
-                      : message.body != null && message.body.isNotEmpty
-                      ? Flexible(
-                    child: Container(
-                      padding:
-                      EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                      decoration: BoxDecoration(
-                          color: primaryColor,
-                          borderRadius: BorderRadius.circular(8.0)),
-                      margin: EdgeInsets.only(left: 10.0),
-                      child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message.body,
-                              style: TextStyle(color: Colors.white),
+                                    getDateWidget(),
+                                  ]),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0)),
+                              clipBehavior: Clip.hardEdge,
                             ),
-                            getDateWidget(),
-                          ]),
-                    ),
-                  )
-                      : Container(
-                    child: Text(
-                      "Empty",
-                      style: TextStyle(color: primaryColor),
-                    ),
-                    padding:
-                    EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                    width: 200.0,
-                    decoration: BoxDecoration(
-                        color: greyColor2,
-                        borderRadius: BorderRadius.circular(8.0)),
-                    margin: EdgeInsets.only(
-                        bottom:
-                        isLastMessageRight(index) ? 20.0 : 10.0,
-                        right: 10.0),
-                  ),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => FullPhoto(
+                                          url: message.attachments.first.url)));
+                            },
+                            padding: EdgeInsets.all(0),
+                          ),
+                          margin: EdgeInsets.only(left: 10.0),
+                        )
+                      : message.body != null && message.body.isNotEmpty
+                          ? Flexible(
+                              child: Container(
+                                padding:
+                                    EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                                decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    borderRadius: BorderRadius.circular(8.0)),
+                                margin: EdgeInsets.only(left: 10.0),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        message.body,
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      getDateWidget(),
+                                    ]),
+                              ),
+                            )
+                          : Container(
+                              child: Text(
+                                "Empty",
+                                style: TextStyle(color: primaryColor),
+                              ),
+                              padding:
+                                  EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                              width: 200.0,
+                              decoration: BoxDecoration(
+                                  color: greyColor2,
+                                  borderRadius: BorderRadius.circular(8.0)),
+                              margin: EdgeInsets.only(
+                                  bottom:
+                                      isLastMessageRight(index) ? 20.0 : 10.0,
+                                  right: 10.0),
+                            ),
                 ],
               ),
             ),
@@ -698,8 +746,8 @@ class ChatScreenState extends State<ChatScreen> {
 
   bool isLastMessageLeft(int index) {
     if ((index > 0 &&
-        listMessage != null &&
-        listMessage[index - 1].id == _cubeUser.id) ||
+            listMessage != null &&
+            listMessage[index - 1].id == _cubeUser.id) ||
         index == 0) {
       return true;
     } else {
@@ -709,8 +757,8 @@ class ChatScreenState extends State<ChatScreen> {
 
   bool isLastMessageRight(int index) {
     if ((index > 0 &&
-        listMessage != null &&
-        listMessage[index - 1].id != _cubeUser.id) ||
+            listMessage != null &&
+            listMessage[index - 1].id != _cubeUser.id) ||
         index == 0) {
       return true;
     } else {

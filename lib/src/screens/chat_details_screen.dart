@@ -106,7 +106,8 @@ class ContactScreenState extends ScreenState {
             children: [
               _buildAvatarFields(),
               _buildTextFields(),
-              _buildButtons(),
+              _buildPinnedMessage(),
+              // _buildButtons(),
               Container(
                 margin: EdgeInsets.only(left: 8),
                 child: Visibility(
@@ -178,6 +179,16 @@ class ContactScreenState extends ScreenState {
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildPinnedMessage(){
+    if (_isProgressContinues) {
+      return SizedBox.shrink();
+    }
+    return ListTile(
+      title: Text("Pinned Messages : "),
+      trailing: Text("${_cubeDialog.pinnedMessagesIds.length}"),
     );
   }
 
