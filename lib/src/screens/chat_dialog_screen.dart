@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 import 'package:connectycube_sdk/src/chat/models/message_status_model.dart';
 import 'package:connectycube_sdk/src/chat/models/typing_status_model.dart';
+import 'package:connectycube_sdk/connectycube_chat.dart';
 
 import 'chat_details_screen.dart';
 import '../utils/consts.dart';
@@ -64,18 +65,13 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        print("=========================================================");
-        print(_messageSelected);
         if (_messageSelected) {
           setState(() {
             _messageSelected = !_messageSelected;
           });
-
-          print(_messageSelected);
           return false;
         }
-        print(_messageSelected);
-        return false;
+        return true;
       },
       child: Scaffold(
         appBar: _messageSelected ? _modifyAppBar(_message) : _setAppBar(),
@@ -92,40 +88,43 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
   }
 
   Widget _modifyAppBar(CubeMessage message) {
-    for (int i = 0; i < 10; i++) {
-      print(i);
-      print(_messageSelected);
-    }
     return _appBar = AppBar(
       actions: [
         IconButton(
+            onPressed: () {
+              List<String> ids = [_message.messageId];
+              bool force =
+                  true; // true - to delete everywhere, false - to delete for himself
+
+              deleteMessages(ids, force).then((deleteItemsResult) {
+                print(deleteItemsResult.successfullyDeleted);
+              }).catchError((error) {});
+            },
+            icon: Icon(Icons.delete)),
+        IconButton(
           onPressed: _pinnedMessages,
-          icon: Icon(Icons.push_pin_sharp),
+          icon: widget._cubeDialog.pinnedMessagesIds.contains(message.messageId)
+              ? Icon(Icons.push_pin_sharp)
+              : Icon(Icons.push_pin_outlined),
         )
       ],
     );
   }
 
   _pinnedMessages() {
-    print(
-        "--------------------------------------------------------------------");
-    print(widget._cubeDialog.pinnedMessagesIds);
+    List<String> pinned = widget._cubeDialog.pinnedMessagesIds;
     UpdateDialogParams updateDialogParams = UpdateDialogParams();
-    widget._cubeDialog.pinnedMessagesIds.contains(_message.messageId)
-        ? widget._cubeDialog.pinnedMessagesIds.remove(_message.messageId)
-        : widget._cubeDialog.pinnedMessagesIds.add(_message.messageId);
-
-    updateDialogParams.addPinnedMsgIds =
-        widget._cubeDialog.pinnedMessagesIds.toSet();
-    updateDialog(widget._cubeDialog.dialogId, updateDialogParams.getUpdateDialogParams()).then((dialog) {
-      widget._cubeDialog = dialog;
-      setState(() {
-        _messageSelected = !_messageSelected;
-      });
-    }).onError((error, stackTrace) {
-      print(error);
+    if (pinned.contains(_message.messageId)) {
+      updateDialogParams.deletePinnedMsgIds=[_message.messageId].toSet();
+      pinned.remove(_message.messageId);
+    }else{
+      pinned.add(_message.messageId);
+      updateDialogParams.addPinnedMsgIds=[_message.messageId].toSet();
+    }
+    setState(() {
+      _messageSelected=false;
     });
-    print(widget._cubeDialog.pinnedMessagesIds);
+    updateDialog(widget._cubeDialog.dialogId, updateDialogParams.getUpdateDialogParams()).then((dialog)=>widget._cubeDialog=dialog);
   }
 
   _chatDetails(BuildContext context) async {

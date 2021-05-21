@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:chat_sample/src/screens/pinnedMessageScreen.dart';
+
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../widgets/common.dart';
@@ -186,35 +188,19 @@ class ContactScreenState extends ScreenState {
     if (_isProgressContinues) {
       return SizedBox.shrink();
     }
+    print(" Pinned Screen *************${_cubeDialog.pinnedMessagesIds}");
     return ListTile(
       title: Text("Pinned Messages : "),
       trailing: Text("${_cubeDialog.pinnedMessagesIds.length}"),
-    );
-  }
-
-  Widget _buildButtons() {
-    if (_isProgressContinues) {
-      return SizedBox.shrink();
-    }
-    return new Container(
-      child: new Column(
-        children: <Widget>[
-          new RaisedButton(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-                side: BorderSide(color: blueColor)),
-            child: Text(
-              'Start dialog',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20, // Text colour here
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            color: blueColor,
+      onTap: (){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                PinnedMessageScreen(widget._cubeUser, widget._cubeDialog),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
