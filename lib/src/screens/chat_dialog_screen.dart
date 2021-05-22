@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:connectycube_sdk/connectycube_sdk.dart';
 import 'package:connectycube_sdk/src/chat/models/message_status_model.dart';
 import 'package:connectycube_sdk/src/chat/models/typing_status_model.dart';
-import 'package:connectycube_sdk/connectycube_chat.dart';
 
 import 'chat_details_screen.dart';
 import '../utils/consts.dart';
@@ -33,6 +32,7 @@ class ChatDialogScreen extends StatefulWidget {
 
 class _ChatDialogScreenState extends State<ChatDialogScreen> {
   static AppBar _appBar;
+  static Widget _body;
   bool _messageSelected = false;
   CubeMessage _message;
 
@@ -40,6 +40,18 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+  }
+
+  Widget _buildBody() {
+    _body =
+        ChatScreen(widget._cubeUser, widget._cubeDialog, (CubeMessage message) {
+      setState(() {
+        _messageSelected = !_messageSelected;
+        _message = message;
+      });
+      _modifyAppBar(message);
+    });
+    return _body;
   }
 
   Widget _setAppBar() {
@@ -65,13 +77,7 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (_messageSelected) {
-          setState(() {
-            _messageSelected = !_messageSelected;
-          });
-          return false;
-        }
-        return true;
+        return Future.value(false);
       },
       child: Scaffold(
         appBar: _messageSelected ? _modifyAppBar(_message) : _setAppBar(),
@@ -91,14 +97,19 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
     return _appBar = AppBar(
       actions: [
         IconButton(
-            onPressed: () {
+            onPressed: () async {
               List<String> ids = [_message.messageId];
               bool force =
                   true; // true - to delete everywhere, false - to delete for himself
-
-              deleteMessages(ids, force).then((deleteItemsResult) {
-                print(deleteItemsResult.successfullyDeleted);
-              }).catchError((error) {});
+              setState(() {
+                _messageSelected = false;
+              });
+              setState(() async {
+                await deleteMessages(ids, force).then((deleteItemsResult) {
+                  print(deleteItemsResult);
+                  print(deleteItemsResult.successfullyDeleted);
+                }).catchError((error) {});
+              });
             },
             icon: Icon(Icons.delete)),
         IconButton(
@@ -115,16 +126,18 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
     List<String> pinned = widget._cubeDialog.pinnedMessagesIds;
     UpdateDialogParams updateDialogParams = UpdateDialogParams();
     if (pinned.contains(_message.messageId)) {
-      updateDialogParams.deletePinnedMsgIds=[_message.messageId].toSet();
+      updateDialogParams.deletePinnedMsgIds = [_message.messageId].toSet();
       pinned.remove(_message.messageId);
-    }else{
+    } else {
       pinned.add(_message.messageId);
-      updateDialogParams.addPinnedMsgIds=[_message.messageId].toSet();
+      updateDialogParams.addPinnedMsgIds = [_message.messageId].toSet();
     }
     setState(() {
-      _messageSelected=false;
+      _messageSelected = false;
     });
-    updateDialog(widget._cubeDialog.dialogId, updateDialogParams.getUpdateDialogParams()).then((dialog)=>widget._cubeDialog=dialog);
+    updateDialog(widget._cubeDialog.dialogId,
+            updateDialogParams.getUpdateDialogParams())
+        .then((dialog) => widget._cubeDialog = dialog);
   }
 
   _chatDetails(BuildContext context) async {
@@ -209,7 +222,8 @@ class ChatScreenState extends State<ChatScreen> {
   }
 
   Future uploadImageFile() async {
-    uploadFileWithProgress(imageFile, isPublic: true, onProgress: (progress) {
+
+    uploadFile(imageFile, isPublic: true, onProgress: (progress) {
       log("uploadImageFile progress= $progress");
     }).then((cubeFile) {
       var url = cubeFile.getPublicUrl();
@@ -221,6 +235,7 @@ class ChatScreenState extends State<ChatScreen> {
       Fluttertoast.showToast(msg: 'This file is not an image');
     });
   }
+
 
   void onReceiveMessage(CubeMessage message) {
     log("onReceiveMessage message= $message");
@@ -307,7 +322,6 @@ class ChatScreenState extends State<ChatScreen> {
     textEditingController.clear();
     await _cubeDialog.sendMessage(message);
     message.senderId = _cubeUser.id;
-    message.properties = {"pinnedMessage": "false"};
     addMessageToListView(message);
     listScrollController.animateTo(0.0,
         duration: Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -572,9 +586,16 @@ class ChatScreenState extends State<ChatScreen> {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text(
-                                      message.body,
-                                      style: TextStyle(color: primaryColor),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          message.body,
+                                          style: TextStyle(color: primaryColor),
+                                        ),
+                                        if (_cubeDialog.pinnedMessagesIds
+                                            .contains(message.messageId))
+                                          Icon(Icons.push_pin_sharp)
+                                      ],
                                     ),
                                     getDateWidget(),
                                     getReadDeliveredWidget(),

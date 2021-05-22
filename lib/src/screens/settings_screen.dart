@@ -164,7 +164,7 @@ class _BodyLayoutState extends State<BodyLayout> {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
     var image = File(pickedFile.path);
-    uploadFile(image, true).then((cubeFile) {
+    uploadFile(image, isPublic: true).then((cubeFile) {
       _avatarUrl = cubeFile.getPublicUrl();
       setState(() {
         currentUser.avatar = _avatarUrl;

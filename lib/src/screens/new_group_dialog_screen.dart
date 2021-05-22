@@ -141,7 +141,7 @@ class NewChatScreenState extends State<NewChatScreen> {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
     var image = File(pickedFile.path);
-    uploadFile(image, true).then((cubeFile) {
+    uploadFile(image, isPublic: true).then((cubeFile) {
       _image = image;
       var url = cubeFile.getPublicUrl();
       log("_createDialogImage url= $url");
