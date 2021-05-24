@@ -1,6 +1,5 @@
 import 'package:connectycube_sdk/connectycube_core.dart';
 import 'package:flutter/cupertino.dart';
-
 Widget getAvatarTextWidget(bool condition, String text) {
   if (condition)
     return SizedBox.shrink();

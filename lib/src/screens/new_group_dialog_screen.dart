@@ -1,22 +1,16 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:connectycube_sdk/connectycube_sdk.dart';
-
 import 'chat_dialog_screen.dart';
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../widgets/common.dart';
-
 class NewGroupDialogScreen extends StatelessWidget {
   final CubeUser currentUser;
   final CubeDialog _cubeDialog;
   final List<CubeUser> users;
-
   NewGroupDialogScreen(this.currentUser, this._cubeDialog, this.users);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,44 +25,35 @@ class NewGroupDialogScreen extends StatelessWidget {
         resizeToAvoidBottomInset: false);
   }
 }
-
 class NewChatScreen extends StatefulWidget {
   static const String TAG = "_CreateChatScreenState";
   final CubeUser currentUser;
   final CubeDialog _cubeDialog;
   final List<CubeUser> users;
-
   NewChatScreen(this.currentUser, this._cubeDialog, this.users);
-
   @override
   State createState() => NewChatScreenState(currentUser, _cubeDialog, users);
 }
-
 class NewChatScreenState extends State<NewChatScreen> {
   static const String TAG = "NewChatScreenState";
   final CubeUser currentUser;
   final CubeDialog _cubeDialog;
   final List<CubeUser> users;
   final TextEditingController _nameFilter = new TextEditingController();
-
   File _image;
   final picker = ImagePicker();
-
   NewChatScreenState(this.currentUser, this._cubeDialog, this.users);
-
   @override
   void initState() {
     super.initState();
     _nameFilter.addListener(_nameListener);
   }
-
   void _nameListener() {
     if (_nameFilter.text.length > 4) {
       log("_createDialogImage text= ${_nameFilter.text.trim()}");
       _cubeDialog.name = _nameFilter.text.trim();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,7 +76,6 @@ class NewChatScreenState extends State<NewChatScreen> {
         ),
         resizeToAvoidBottomInset: false);
   }
-
   _buildGroupFields() {
     getIcon() {
       if (_image == null) {
@@ -104,7 +88,6 @@ class NewChatScreenState extends State<NewChatScreen> {
         return Image.file(_image, width: 45.0, height: 45.0);
       }
     }
-
     return Column(
       children: <Widget>[
         Row(
@@ -136,7 +119,6 @@ class NewChatScreenState extends State<NewChatScreen> {
       ],
     );
   }
-
   _createDialogImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
@@ -150,7 +132,6 @@ class NewChatScreenState extends State<NewChatScreen> {
       });
     }).catchError(_processDialogError);
   }
-
   _buildDialogOccupants() {
     _getListItemTile(BuildContext context, int index) {
       return Container(
@@ -191,7 +172,6 @@ class NewChatScreenState extends State<NewChatScreen> {
         ),
       );
     }
-
     _getOccupants() {
       return ListView.builder(
         shrinkWrap: true,
@@ -201,24 +181,20 @@ class NewChatScreenState extends State<NewChatScreen> {
         itemBuilder: _getListItemTile,
       );
     }
-
     return Container(
       child: Expanded(
         child: _getOccupants(),
       ),
     );
   }
-
   void _processDialogError(exception) {
     log("error $exception", TAG);
     showDialogError(exception, context);
   }
-
   Future<bool> onBackPress() {
     Navigator.pop(context);
     return Future.value(false);
   }
-
   _createDialog() {
     log("_createDialog _cubeDialog= $_cubeDialog");
     if (_cubeDialog.name == null || _cubeDialog.name.length < 5) {

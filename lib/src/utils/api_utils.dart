@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
-
 import 'package:connectycube_sdk/connectycube_chat.dart';
 import 'package:flutter/material.dart';
-
 void showDialogError(exception, context) {
   showDialog(
       context: context,
@@ -20,7 +18,6 @@ void showDialogError(exception, context) {
         );
       });
 }
-
 void showDialogMsg(msg, context) {
   showDialog(
       context: context,
@@ -37,13 +34,11 @@ void showDialogMsg(msg, context) {
         );
       });
 }
-
 class ListItem<T> {
   bool isSelected = false; //Selection property to highlight or not
   T data; //Data of the user
   ListItem(this.data); //Constructor to assign the data
 }
-
 Future<Map<int, CubeUser>> getUsersByIds(Set<int> ids) async {
   Completer<Map<int, CubeUser>> completer = Completer();
   Map<int, CubeUser> users = HashMap();

@@ -3,31 +3,24 @@ import '../widgets/common.dart';
 import 'package:connectycube_sdk/connectycube_chat.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 class AddOccupantScreen extends StatefulWidget {
   final CubeUser _cubeUser;
   final CubeDialog _cubeDialog;
-
   @override
   State<StatefulWidget> createState() {
     return _AddOccupantScreenState(_cubeUser, _cubeDialog);
   }
-
   AddOccupantScreen(this._cubeUser, this._cubeDialog);
 }
-
 class _AddOccupantScreenState extends State<AddOccupantScreen> {
   static const String TAG = "_AddOccupantScreenState";
   final CubeUser currentUser;
   final CubeDialog _cubeDialog;
-
   _AddOccupantScreenState(this.currentUser, this._cubeDialog);
-
   @override
   void initState() {
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -43,37 +36,29 @@ class _AddOccupantScreenState extends State<AddOccupantScreen> {
       ),
     );
   }
-
   Future<bool> _onBackPressed(BuildContext context) {
     Navigator.pop(context);
     return Future.value(false);
   }
 }
-
 class BodyLayout extends StatefulWidget {
   final CubeUser currentUser;
   final CubeDialog _cubeDialog;
-
   BodyLayout(this.currentUser, this._cubeDialog);
-
   @override
   State<StatefulWidget> createState() {
     return _BodyLayoutState(currentUser);
   }
 }
-
 class _BodyLayoutState extends State<BodyLayout> {
   static const String TAG = "_BodyLayoutState";
-
   final CubeUser currentUser;
   List<CubeUser> userList = [];
   Set<int> _selectedUsers = {};
   var _isUsersContinues = false;
   String userToSearch;
   String userMsg = " ";
-
   _BodyLayoutState(this.currentUser);
-
   _searchUser(value) {
     log("searchUser _user= $value");
     if (value != null)
@@ -82,7 +67,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         _isUsersContinues = true;
       });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +106,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _buildTextFields() {
     return new Container(
       child: new Column(
@@ -139,7 +122,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _getUsersList(BuildContext context) {
     clearValues() {
       _isUsersContinues = false;
@@ -147,7 +129,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       userMsg = " ";
       userList.clear();
     }
-
     if (_isUsersContinues) {
       if (userToSearch != null && userToSearch.isNotEmpty) {
         getUsersByFullName(userToSearch).then((users) {
@@ -176,7 +157,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         itemBuilder: _getListItemTile,
       );
   }
-
   Widget _getListItemTile(BuildContext context, int index) {
     return Container(
       child: FlatButton(
@@ -253,7 +233,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
     );
   }
-
   void _updateDialog(BuildContext context, List<int> users) async {
     log("_updateDialog with users= $users");
     Navigator.pop(context, users);

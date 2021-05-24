@@ -1,22 +1,16 @@
 import 'package:connectycube_sdk/connectycube_chat.dart';
 import 'package:flutter/material.dart';
-
 class PinnedMessageScreen extends StatefulWidget {
   final CubeUser _cubeUser;
   final CubeDialog _cubeDialog;
-
   PinnedMessageScreen(this._cubeUser, this._cubeDialog, {Key key})
       : super(key: key);
-
   @override
   _PinnedMessageScreenState createState() => _PinnedMessageScreenState();
 }
-
 class _PinnedMessageScreenState extends State<PinnedMessageScreen> {
   List<CubeMessage> _pinnedMessages;
-
   Future<List<CubeMessage>> _future;
-
   @override
   void initState() {
     // TODO: implement initState
@@ -24,7 +18,6 @@ class _PinnedMessageScreenState extends State<PinnedMessageScreen> {
     print(_future);
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +44,6 @@ class _PinnedMessageScreenState extends State<PinnedMessageScreen> {
           },
         ));
   }
-
   Future<List<CubeMessage>> _getMessage()  {
     String dialogId = widget._cubeDialog.dialogId;
     GetMessagesParameters params = GetMessagesParameters();

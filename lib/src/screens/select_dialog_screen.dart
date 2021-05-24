@@ -1,22 +1,16 @@
 import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-
 import 'package:connectycube_sdk/connectycube_sdk.dart';
-
 import 'new_dialog_screen.dart';
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
-
 class SelectDialogScreen extends StatelessWidget {
   static const String TAG = "SelectDialogScreen";
   final CubeUser currentUser;
-
   SelectDialogScreen(this.currentUser);
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -41,41 +35,31 @@ class SelectDialogScreen extends StatelessWidget {
       ),
     );
   }
-
   Future<bool> _onBackPressed() {
     return Future.value(false);
   }
-
   _openSettings(BuildContext context) {
     Navigator.pushNamed(context, 'settings',
         arguments: {USER_ARG_NAME: currentUser});
   }
 }
-
 class BodyLayout extends StatefulWidget {
   final CubeUser currentUser;
-
   BodyLayout(this.currentUser);
-
   @override
   State<StatefulWidget> createState() {
     return _BodyLayoutState(currentUser);
   }
 }
-
 class _BodyLayoutState extends State<BodyLayout> {
   static const String TAG = "_BodyLayoutState";
-
   final CubeUser currentUser;
   List<ListItem<CubeDialog>> dialogList = [];
   var _isDialogContinues = true;
-
   StreamSubscription<CubeMessage> msgSubscription;
   final ChatMessagesManager chatMessagesManager =
       CubeChatConnection.instance.chatMessagesManager;
-
   _BodyLayoutState(this.currentUser);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +94,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   void _createNewDialog(BuildContext context) async {
     Navigator.push(
       context,
@@ -119,7 +102,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     ).then((value) => refresh());
   }
-
   void _processGetDialogError(exception) {
     log("GetDialog error $exception", TAG);
     setState(() {
@@ -127,7 +109,6 @@ class _BodyLayoutState extends State<BodyLayout> {
     });
     showDialogError(exception, context);
   }
-
   Widget _getDialogsList(BuildContext context) {
     if (_isDialogContinues) {
       getDialogs().then((dialogs) {
@@ -156,7 +137,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         },
       );
   }
-
   Widget _getListItemTile(BuildContext context, int index) {
     getDialogIcon() {
       var dialog = dialogList[index].data;
@@ -174,7 +154,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         );
       }
     }
-
     getDialogAvatarWidget() {
       var dialog = dialogList[index].data;
       if (dialog.photo == null) {
@@ -203,7 +182,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         );
       }
     }
-
     return Container(
       child: FlatButton(
         child: Row(
@@ -282,42 +260,35 @@ class _BodyLayoutState extends State<BodyLayout> {
       margin: EdgeInsets.only(left: 5.0, right: 5.0),
     );
   }
-
   void _deleteDialog(BuildContext context, CubeDialog dialog) async {
     log("_deleteDialog= $dialog");
     Fluttertoast.showToast(msg: 'Coming soon');
   }
-
   void _openDialog(BuildContext context, CubeDialog dialog) async {
     Navigator.pushNamed(context, 'chat_dialog',
         arguments: {USER_ARG_NAME: currentUser, DIALOG_ARG_NAME: dialog});
   }
-
   void refresh() {
     setState(() {
       _isDialogContinues = true;
     });
   }
-
   @override
   void initState() {
     super.initState();
     msgSubscription =
         chatMessagesManager.chatMessagesStream?.listen(onReceiveMessage);
   }
-
   @override
   void dispose() {
     super.dispose();
     log("dispose", TAG);
     msgSubscription?.cancel();
   }
-
   void onReceiveMessage(CubeMessage message) {
     log("onReceiveMessage global message= $message");
     updateDialog(message);
   }
-
   updateDialog(CubeMessage msg) {
     ListItem<CubeDialog> dialogItem = dialogList.firstWhere(
         (dlg) => dlg.data.dialogId == msg.dialogId,

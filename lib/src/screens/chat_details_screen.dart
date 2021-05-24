@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:chat_sample/src/screens/pinnedMessageScreen.dart';
-
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../widgets/common.dart';
@@ -11,15 +9,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'add_occupant_screen.dart';
-
 class ChatDetailsScreen extends StatelessWidget {
   final CubeUser _cubeUser;
   final CubeDialog _cubeDialog;
-
   ChatDetailsScreen(this._cubeUser, this._cubeDialog);
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -38,34 +32,27 @@ class ChatDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
   Future<bool> _onBackPressed(BuildContext context) {
     Navigator.pop(context);
     return Future.value(false);
   }
 }
-
 class DetailScreen extends StatefulWidget {
   static const String TAG = "DetailScreen";
   final CubeUser _cubeUser;
   final CubeDialog _cubeDialog;
-
   DetailScreen(this._cubeUser, this._cubeDialog);
-
   @override
   State createState() => _cubeDialog.type == CubeDialogType.PRIVATE
       ? ContactScreenState(_cubeUser, _cubeDialog)
       : GroupScreenState(_cubeUser, _cubeDialog);
 }
-
 abstract class ScreenState extends State<DetailScreen> {
   final CubeUser _cubeUser;
   CubeDialog _cubeDialog;
   final Map<int, CubeUser> _occupants = Map();
   var _isProgressContinues = false;
-
   ScreenState(this._cubeUser, this._cubeDialog);
-
   @override
   void initState() {
     super.initState();
@@ -73,7 +60,6 @@ abstract class ScreenState extends State<DetailScreen> {
       initUsers();
     }
   }
-
   initUsers() async {
     _isProgressContinues = true;
     var result = await getUsersByIds(_cubeDialog.occupantsIds.toSet());
@@ -85,18 +71,14 @@ abstract class ScreenState extends State<DetailScreen> {
     });
   }
 }
-
 class ContactScreenState extends ScreenState {
   CubeUser contactUser;
-
   initUser() {
     contactUser = _occupants.values.isNotEmpty
         ? _occupants.values.first
         : CubeUser(fullName: "Absent");
   }
-
   ContactScreenState(_cubeUser, _cubeDialog) : super(_cubeUser, _cubeDialog);
-
   @override
   Widget build(BuildContext context) {
     initUser();
@@ -126,7 +108,6 @@ class ContactScreenState extends ScreenState {
           )),
     );
   }
-
   Widget _buildAvatarFields() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -151,7 +132,6 @@ class ContactScreenState extends ScreenState {
       ],
     );
   }
-
   Widget _buildTextFields() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -183,7 +163,6 @@ class ContactScreenState extends ScreenState {
       ),
     );
   }
-
   Widget _buildPinnedMessage(){
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -204,7 +183,6 @@ class ContactScreenState extends ScreenState {
     );
   }
 }
-
 class GroupScreenState extends ScreenState {
   final picker = ImagePicker();
   final TextEditingController _nameFilter = new TextEditingController();
@@ -212,13 +190,11 @@ class GroupScreenState extends ScreenState {
   String _name = "";
   Set<int> _usersToRemove = {};
   List<int> _usersToAdd;
-
   GroupScreenState(_cubeUser, _cubeDialog) : super(_cubeUser, _cubeDialog) {
     _nameFilter.addListener(_nameListen);
     _nameFilter.text = _cubeDialog.name;
     clearFields();
   }
-
   void _nameListen() {
     if (_nameFilter.text.isEmpty) {
       _name = "";
@@ -226,7 +202,6 @@ class GroupScreenState extends ScreenState {
       _name = _nameFilter.text.trim();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,7 +240,6 @@ class GroupScreenState extends ScreenState {
       ),
     );
   }
-
   Widget _buildPhotoFields() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -280,7 +254,6 @@ class GroupScreenState extends ScreenState {
           _cubeDialog.photo != null && _cubeDialog.photo.isNotEmpty,
           _cubeDialog.name.substring(0, 2).toUpperCase()),
     );
-
     return new Stack(
       children: <Widget>[
         InkWell(
@@ -309,7 +282,6 @@ class GroupScreenState extends ScreenState {
       ],
     );
   }
-
   _chooseUserImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
@@ -321,7 +293,6 @@ class GroupScreenState extends ScreenState {
       });
     }).catchError(_processUpdateError);
   }
-
   Widget _buildTextFields() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -341,7 +312,6 @@ class GroupScreenState extends ScreenState {
       ),
     );
   }
-
   _buildGroupFields() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -355,7 +325,6 @@ class GroupScreenState extends ScreenState {
       ],
     );
   }
-
   Widget _addMemberBtn() {
     return Container(
       padding: EdgeInsets.only(
@@ -394,7 +363,6 @@ class GroupScreenState extends ScreenState {
       ),
     );
   }
-
   Widget _removeMemberBtn() {
     if (_usersToRemove.isEmpty) {
       return SizedBox.shrink();
@@ -439,7 +407,6 @@ class GroupScreenState extends ScreenState {
       ),
     );
   }
-
   Widget _getUsersList() {
     if (_isProgressContinues) {
       return SizedBox.shrink();
@@ -456,7 +423,6 @@ class GroupScreenState extends ScreenState {
       },
     );
   }
-
   Widget _getListItemTile(BuildContext context, int index) {
     final user = _occupants.values.elementAt(index);
     Widget getUserAvatar() {
@@ -481,7 +447,6 @@ class GroupScreenState extends ScreenState {
         );
       }
     }
-
     return Container(
       child: FlatButton(
         child: Row(
@@ -533,7 +498,6 @@ class GroupScreenState extends ScreenState {
       margin: EdgeInsets.only(bottom: 10.0),
     );
   }
-
   Widget _exitGroupBtn() {
     return Container(
       padding: EdgeInsets.only(
@@ -572,7 +536,6 @@ class GroupScreenState extends ScreenState {
       ),
     );
   }
-
   void _processUpdateError(exception) {
     log("_processUpdateUserError error $exception");
     setState(() {
@@ -581,7 +544,6 @@ class GroupScreenState extends ScreenState {
     });
     showDialogError(exception, context);
   }
-
   _addOpponent() async {
     print('_addOpponent');
     _usersToAdd = await Navigator.push(
@@ -592,12 +554,10 @@ class GroupScreenState extends ScreenState {
     );
     if (_usersToAdd != null && _usersToAdd.isNotEmpty) _updateDialog();
   }
-
   _removeOpponent() async {
     print('_removeOpponent');
     if (_usersToRemove != null && _usersToRemove.isNotEmpty) _updateDialog();
   }
-
   _exitDialog() {
     print('_exitDialog');
     deleteDialog(_cubeDialog.dialogId).then((onValue) {
@@ -606,7 +566,6 @@ class GroupScreenState extends ScreenState {
           arguments: {USER_ARG_NAME: _cubeUser});
     }).catchError(_processUpdateError);
   }
-
   void _updateDialog() {
     print('_updateDialog $_name');
     if (_name.isEmpty &&
@@ -623,7 +582,6 @@ class GroupScreenState extends ScreenState {
       params['push_all'] = {'occupants_ids': List.of(_usersToAdd)};
     if (_usersToRemove?.isNotEmpty ?? false)
       params['pull_all'] = {'occupants_ids': List.of(_usersToRemove)};
-
     setState(() {
       _isProgressContinues = true;
     });
@@ -638,7 +596,6 @@ class GroupScreenState extends ScreenState {
       });
     }).catchError(_processUpdateError);
   }
-
   clearFields() {
     _name = '';
     _photoUrl = '';

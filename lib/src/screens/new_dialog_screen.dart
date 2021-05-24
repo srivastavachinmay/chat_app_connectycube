@@ -1,35 +1,26 @@
 import 'package:flutter/material.dart';
-
 import 'package:connectycube_sdk/connectycube_chat.dart';
-
 import 'chat_dialog_screen.dart';
 import 'new_group_dialog_screen.dart';
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../widgets/common.dart';
-
 class CreateChatScreen extends StatefulWidget {
   final CubeUser _cubeUser;
-
   @override
   State<StatefulWidget> createState() {
     return _CreateChatScreenState(_cubeUser);
   }
-
   CreateChatScreen(this._cubeUser);
 }
-
 class _CreateChatScreenState extends State<CreateChatScreen> {
   static const String TAG = "_CreateChatScreenState";
   final CubeUser currentUser;
-
   _CreateChatScreenState(this.currentUser);
-
   @override
   void initState() {
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -45,27 +36,21 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
       ),
     );
   }
-
   Future<bool> _onBackPressed(BuildContext context) {
     Navigator.pop(context);
     return Future.value(false);
   }
 }
-
 class BodyLayout extends StatefulWidget {
   final CubeUser currentUser;
-
   BodyLayout(this.currentUser);
-
   @override
   State<StatefulWidget> createState() {
     return _BodyLayoutState(currentUser);
   }
 }
-
 class _BodyLayoutState extends State<BodyLayout> {
   static const String TAG = "_BodyLayoutState";
-
   final CubeUser currentUser;
   List<CubeUser> userList = [];
   Set<int> _selectedUsers = {};
@@ -73,11 +58,8 @@ class _BodyLayoutState extends State<BodyLayout> {
   var _isPrivateDialog = true;
   String userToSearch;
   String userMsg = " ";
-
   bool _isDialogContinues = false;
-
   _BodyLayoutState(this.currentUser);
-
   _searchUser(value) {
     log("searchUser _user= $value");
     if (value != null)
@@ -86,7 +68,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         _isUsersContinues = true;
       });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,7 +108,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _buildTextFields() {
     return new Container(
       child: new Column(
@@ -144,7 +124,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _buildDialogButton() {
     getIcon() {
       if (_isPrivateDialog) {
@@ -153,7 +132,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         return Icons.people;
       }
     }
-
     getDescription() {
       if (_isPrivateDialog) {
         return "Create group chat";
@@ -161,7 +139,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         return "Create private chat";
       }
     }
-
     return new Container(
       alignment: Alignment.centerLeft,
       child: FlatButton.icon(
@@ -179,7 +156,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _getUsersList(BuildContext context) {
     clearValues() {
       _isUsersContinues = false;
@@ -187,7 +163,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       userMsg = " ";
       userList.clear();
     }
-
     if (_isUsersContinues) {
       if (userToSearch != null && userToSearch.isNotEmpty) {
         getUsersByFullName(userToSearch).then((users) {
@@ -216,7 +191,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         itemBuilder: _getListItemTile,
       );
   }
-
   Widget _getListItemTile(BuildContext context, int index) {
     getPrivateWidget() {
       return Container(
@@ -281,7 +255,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
       );
     }
-
     getGroupWidget() {
       return Container(
         child: FlatButton(
@@ -358,7 +331,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
       );
     }
-
     getItemWidget() {
       if (_isPrivateDialog) {
         return getPrivateWidget();
@@ -366,10 +338,8 @@ class _BodyLayoutState extends State<BodyLayout> {
         return getGroupWidget();
       }
     }
-
     return getItemWidget();
   }
-
   void _createDialog(BuildContext context, Set<int> users, bool isGroup) async {
     log("_createDialog with users= $users");
     if (isGroup) {
@@ -400,7 +370,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       }).catchError(_processCreateDialogError);
     }
   }
-
   void _processCreateDialogError(exception) {
     log("Login error $exception", TAG);
     setState(() {
@@ -408,7 +377,6 @@ class _BodyLayoutState extends State<BodyLayout> {
     });
     showDialogError(exception, context);
   }
-
   @override
   void initState() {
     super.initState();

@@ -1,8 +1,6 @@
 import 'dart:async';
-
 import 'package:connectycube_sdk/connectycube_chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 const String prefUserLogin = "pref_user_login";
 const String prefUserPsw = "pref_user_psw";
 const String prefUserName = "pref_user_name";
@@ -10,17 +8,12 @@ const String prefUserId = "pref_user_id";
 const String prefUserAvatar = "pref_user_avatar";
 const String prefSubscriptionToken = "pref_subscription_token";
 const String prefSubscriptionId = "pref_subscription_id";
-
 class SharedPrefs {
   static final SharedPrefs _instance = SharedPrefs._internal();
   SharedPreferences prefs;
-
   SharedPrefs._internal();
-
   bool inited = false;
-
   static SharedPrefs get instance => _instance;
-
   Future<SharedPrefs> init() async {
     Completer completer = Completer<SharedPrefs>();
     if (inited) {
@@ -32,7 +25,6 @@ class SharedPrefs {
     }
     return completer.future;
   }
-
   saveNewUser(CubeUser cubeUser) {
     prefs.clear();
     prefs.setString(prefUserLogin, cubeUser.login);
@@ -42,7 +34,6 @@ class SharedPrefs {
     if (cubeUser.avatar != null)
       prefs.setString(prefUserAvatar, cubeUser.avatar);
   }
-
   updateUser(CubeUser cubeUser) {
     if (cubeUser.password != null)
       prefs.setString(prefUserPsw, cubeUser.password);
@@ -52,7 +43,6 @@ class SharedPrefs {
     if (cubeUser.avatar != null)
       prefs.setString(prefUserAvatar, cubeUser.avatar);
   }
-
   CubeUser getUser() {
     if (prefs.get(prefUserLogin) == null) return null;
     var user = CubeUser();
@@ -63,23 +53,18 @@ class SharedPrefs {
     user.avatar = prefs.get(prefUserAvatar);
     return user;
   }
-
   deleteUser() {
     prefs.clear();
   }
-
   saveSubscriptionToken(String token) {
     prefs?.setString(prefSubscriptionToken, token);
   }
-
   String getSubscriptionToken() {
     return prefs?.getString(prefSubscriptionToken) ?? "";
   }
-
   saveSubscriptionId(int id) {
     prefs?.setInt(prefSubscriptionId, id);
   }
-
   int getSubscriptionId() {
     return prefs?.getInt(prefSubscriptionId) ?? 0;
   }

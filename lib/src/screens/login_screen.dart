@@ -1,19 +1,14 @@
 import 'dart:convert';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:connectycube_sdk/connectycube_sdk.dart';
-
 import '../push_notifications_manager.dart';
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../utils/pref_util.dart';
-
 class LoginScreen extends StatelessWidget {
   static const String TAG = "LoginScreen";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,15 +17,12 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
-
 class LoginPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new LoginPageState();
 }
-
 // Used for controlling whether the user is loggin or creating an account
 enum FormType { login, register }
-
 class LoginPageState extends State<LoginPage> {
   static const String TAG = "_LoginPageState";
   final TextEditingController _loginFilter = new TextEditingController();
@@ -39,14 +31,11 @@ class LoginPageState extends State<LoginPage> {
   String _password = "";
   FormType _form = FormType
       .login; // our default setting is to login, and we should switch to creating an account when the user chooses to
-
   bool _isLoginContinues = false;
-
   LoginPageState() {
     _loginFilter.addListener(_loginListen);
     _passwordFilter.addListener(_passwordListen);
   }
-
   void _loginListen() {
     if (_loginFilter.text.isEmpty) {
       _login = "";
@@ -54,7 +43,6 @@ class LoginPageState extends State<LoginPage> {
       _login = _loginFilter.text;
     }
   }
-
   void _passwordListen() {
     if (_passwordFilter.text.isEmpty) {
       _password = "";
@@ -62,7 +50,6 @@ class LoginPageState extends State<LoginPage> {
       _password = _passwordFilter.text;
     }
   }
-
   // Swap in between our two forms, registering and logging in
   void _formChange() async {
     setState(() {
@@ -73,7 +60,6 @@ class LoginPageState extends State<LoginPage> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -90,7 +76,6 @@ class LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
   Widget _buildLogoField() {
 //    return Image.asset('assets/images/splash.png');
     return Container(
@@ -118,7 +103,6 @@ class LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
   _initLoginWidgets() {
     return FutureBuilder<Widget>(
         future: getFilterChipsWidgets(),
@@ -129,7 +113,6 @@ class LoginPageState extends State<LoginPage> {
           return SizedBox.shrink();
         });
   }
-
   Future<Widget> getFilterChipsWidgets() async {
     if (_isLoginContinues) return SizedBox.shrink();
     SharedPrefs sharedPrefs = await SharedPrefs.instance.init();
@@ -145,7 +128,6 @@ class LoginPageState extends State<LoginPage> {
         children: <Widget>[_buildTextFields(), _buildButtons()],
       );
   }
-
   Widget _buildTextFields() {
     return new Container(
       child: new Column(
@@ -167,7 +149,6 @@ class LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
   Widget _buildButtons() {
     if (_form == FormType.login) {
       return new Container(
@@ -205,24 +186,20 @@ class LoginPageState extends State<LoginPage> {
       );
     }
   }
-
   void _loginPressed() {
     print('login with $_login and $_password');
     _loginToCC(context, CubeUser(login: _login, password: _password),
         saveUser: true);
   }
-
   void _createAccountPressed() {
     print('create an user with $_login and $_password');
     _signInCC(context,
         CubeUser(login: _login, password: _password, fullName: _login));
   }
-
   void _delete_user_pressed() {
     print('_delete_user_pressed $_login and $_password');
     _userDelete();
   }
-
   void _userDelete() {
     createSession(CubeUser(login: _login, password: _password))
         .then((cubeSession) {
@@ -245,10 +222,8 @@ class LoginPageState extends State<LoginPage> {
       });
     }).catchError(_processLoginError);
   }
-
   _signInCC(BuildContext context, CubeUser user) async {
     if (_isLoginContinues) return;
-
     setState(() {
       _isLoginContinues = true;
     });
@@ -268,13 +243,11 @@ class LoginPageState extends State<LoginPage> {
       });
     }).catchError(_processLoginError);
   }
-
   _loginToCC(BuildContext context, CubeUser user, {bool saveUser = false}) {
     if (_isLoginContinues) return;
     setState(() {
       _isLoginContinues = true;
     });
-
     createSession(user).then((cubeSession) async {
       var tempUser = user;
       user = cubeSession.user..password = tempUser.password;
@@ -282,13 +255,10 @@ class LoginPageState extends State<LoginPage> {
         SharedPrefs.instance.init().then((sharedPrefs) {
           sharedPrefs.saveNewUser(user);
         });
-
       PushNotificationsManager.instance.init();
-
       _loginToCubeChat(context, user);
     }).catchError(_processLoginError);
   }
-
   _loginToCubeChat(BuildContext context, CubeUser user) {
     print("_loginToCubeChat user $user");
     CubeChatConnectionSettings.instance.totalReconnections = 0;
@@ -297,7 +267,6 @@ class LoginPageState extends State<LoginPage> {
       _goDialogScreen(context, cubeUser);
     }).catchError(_processLoginError);
   }
-
   void _processLoginError(exception) {
     log("Login error $exception", TAG);
     setState(() {
@@ -305,7 +274,6 @@ class LoginPageState extends State<LoginPage> {
     });
     showDialogError(exception, context);
   }
-
   void _clear() {
     _isLoginContinues = false;
     _login = "";
@@ -313,14 +281,11 @@ class LoginPageState extends State<LoginPage> {
     _loginFilter.clear();
     _passwordFilter.clear();
   }
-
   void _goDialogScreen(BuildContext context, CubeUser cubeUser) async {
     log("_goDialogScreen");
-
     // TODO replace with code below after fix https://github.com/FirebaseExtended/flutterfire/issues/4898
     FirebaseMessaging.instance.getInitialMessage().then((remoteMessage) {
       log("getInitialMessage, remoteMessage: $remoteMessage");
-
       if (remoteMessage == null || remoteMessage.data == null) {
         Navigator.pushReplacementNamed(
           context,
@@ -330,9 +295,7 @@ class LoginPageState extends State<LoginPage> {
       } else {
         Map<String, dynamic> payloadObject = remoteMessage.data;
         String dialogId = payloadObject['dialog_id'];
-
         log("getNotificationAppLaunchDetails, dialog_id: $dialogId");
-
         getDialogs({'id': dialogId}).then((dialogs) {
           if (dialogs?.items != null && dialogs.items.isNotEmpty ?? false) {
             CubeDialog dialog = dialogs.items.first;
@@ -349,12 +312,10 @@ class LoginPageState extends State<LoginPage> {
         arguments: {USER_ARG_NAME: cubeUser},
       );
     });
-
     FlutterLocalNotificationsPlugin()
         .getNotificationAppLaunchDetails()
         .then((details) {
       String payload = details.payload;
-
       if (payload == null) {
         Navigator.pushReplacementNamed(
           context,
@@ -364,7 +325,6 @@ class LoginPageState extends State<LoginPage> {
       } else {
         Map<String, dynamic> payloadObject = jsonDecode(payload);
         String dialogId = payloadObject['dialog_id'];
-
         getDialogs({'id': dialogId}).then((dialogs) {
           if (dialogs?.items != null && dialogs.items.isNotEmpty ?? false) {
             CubeDialog dialog = dialogs.items.first;

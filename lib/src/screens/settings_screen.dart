@@ -1,23 +1,17 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:connectycube_sdk/connectycube_sdk.dart';
-
 import '../push_notifications_manager.dart';
 import '../utils/api_utils.dart';
 import '../utils/consts.dart';
 import '../utils/pref_util.dart';
 import '../widgets/common.dart';
-
 class SettingsScreen extends StatelessWidget {
   final CubeUser currentUser;
-
   SettingsScreen(this.currentUser);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,21 +26,16 @@ class SettingsScreen extends StatelessWidget {
         resizeToAvoidBottomInset: false);
   }
 }
-
 class BodyLayout extends StatefulWidget {
   final CubeUser currentUser;
-
   BodyLayout(this.currentUser);
-
   @override
   State<StatefulWidget> createState() {
     return _BodyLayoutState(currentUser);
   }
 }
-
 class _BodyLayoutState extends State<BodyLayout> {
   static const String TAG = "_BodyLayoutState";
-
   final CubeUser currentUser;
   var _isUsersContinues = false;
   String _avatarUrl = "";
@@ -55,14 +44,12 @@ class _BodyLayoutState extends State<BodyLayout> {
   final TextEditingController _nameFilter = new TextEditingController();
   String _login = "";
   String _name = "";
-
   _BodyLayoutState(this.currentUser) {
     _loginFilter.addListener(_loginListen);
     _nameFilter.addListener(_nameListen);
     _nameFilter.text = currentUser.fullName;
     _loginFilter.text = currentUser.login;
   }
-
   _searchUser(value) {
     log("searchUser _user= $value");
     if (value != null)
@@ -70,7 +57,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         _isUsersContinues = true;
       });
   }
-
   void _loginListen() {
     if (_loginFilter.text.isEmpty) {
       _login = "";
@@ -78,7 +64,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       _login = _loginFilter.text.trim();
     }
   }
-
   void _nameListen() {
     if (_nameFilter.text.isEmpty) {
       _name = "";
@@ -86,7 +71,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       _name = _nameFilter.text.trim();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +100,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _buildAvatarFields() {
     Widget avatarCircle = CircleAvatar(
       backgroundImage:
@@ -130,7 +113,6 @@ class _BodyLayoutState extends State<BodyLayout> {
         currentUser.fullName.substring(0, 2).toUpperCase(),
       ),
     );
-
     return new Stack(
       children: <Widget>[
         InkWell(
@@ -159,7 +141,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ],
     );
   }
-
   _chooseUserImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
@@ -171,7 +152,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       });
     }).catchError(_processUpdateUserError);
   }
-
   Widget _buildTextFields() {
     return Container(
       child: Column(
@@ -192,7 +172,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   Widget _buildButtons() {
     return new Container(
       child: new Column(
@@ -209,7 +188,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       ),
     );
   }
-
   void _updateUser() {
     print('_updateUser user with $_login and $_name');
     if (_login.isEmpty && _name.isEmpty && _avatarUrl.isEmpty) {
@@ -217,7 +195,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       return;
     }
     var userToUpdate = CubeUser()..id = currentUser.id;
-
     if (_name.isNotEmpty) userToUpdate.fullName = _name;
     if (_login.isNotEmpty) userToUpdate.login = _login;
     if (_avatarUrl.isNotEmpty) userToUpdate.avatar = _avatarUrl;
@@ -232,7 +209,6 @@ class _BodyLayoutState extends State<BodyLayout> {
       });
     }).catchError(_processUpdateUserError);
   }
-
   void _logout() {
     print('_logout $_login and $_name');
     showDialog(
@@ -273,11 +249,9 @@ class _BodyLayoutState extends State<BodyLayout> {
       },
     );
   }
-
   _navigateToLoginScreen(BuildContext context) {
     Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
   }
-
   void _processUpdateUserError(exception) {
     log("_processUpdateUserError error $exception", TAG);
     setState(() {
