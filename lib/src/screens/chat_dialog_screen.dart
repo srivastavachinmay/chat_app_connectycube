@@ -632,33 +632,56 @@ class ChatScreenState extends State<ChatScreen> {
                                       if (message.properties["isReplying"] ==
                                           "true")
                                         Container(
-                                          child: Column(
-                                            children: [
-                                              Text(
-                                                _occupants[int.parse(message
-                                                            .properties[
-                                                        "isReplyingsenderId"])]
-                                                    .fullName,
-                                                style: TextStyle(
-                                                    color: greyColor3),
-                                              ),
-                                              Text(
-                                                message.properties[
-                                                    "isReplyingbody"],
-                                                style: TextStyle(
-                                                    color: greyColor3),
-                                              )
-                                            ],
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  int.parse(message.properties[
+                                                              "isReplyingsenderId"]) ==
+                                                          _cubeUser.id
+                                                      ? "You"
+                                                      : _occupants[int.parse(message
+                                                                  .properties[
+                                                              "isReplyingsenderId"])]
+                                                          .fullName,
+                                                  style: TextStyle(
+                                                      color: greyColor3),
+                                                ),
+                                                Text(
+                                                  message.properties[
+                                                      "isReplyingbody"],
+                                                  style: TextStyle(
+                                                      color: greyColor3),
+                                                )
+                                              ],
+                                            ),
+                                            margin: EdgeInsets.only(
+                                                bottom:
+                                                    isLastMessageRight(index)
+                                                        ? 20.0
+                                                        : 10.0,
+                                                right: 10.0),
+                                            padding: EdgeInsets.fromLTRB(
+                                                15.0, 10.0, 15.0, 10.0),
+                                            decoration: BoxDecoration(
+                                                color: primaryColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        8.0))),
+
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            message.body,
+                                            style: TextStyle(color: primaryColor),
                                           ),
-                                          color: primaryColor,
-                                        ),
-                                      Text(
-                                        message.body,
-                                        style: TextStyle(color: primaryColor),
+                                          if (message.properties["Pinned"] ==
+                                              "true")
+                                            Icon(Icons.push_pin_sharp,size: 20,),
+                                        ],
                                       ),
-                                      if (message.properties["Pinned"] ==
-                                          "true")
-                                        Icon(Icons.push_pin_sharp),
+
                                       getDateWidget(),
                                       getReadDeliveredWidget(),
                                     ]),
@@ -809,35 +832,55 @@ class ChatScreenState extends State<ChatScreen> {
                                         if (message.properties["isReplying"] ==
                                             "true")
                                           Container(
-                                            child: Column(
-                                              children: [
-                                                Text(
-                                                  _occupants[int.parse(message
-                                                      .properties[
-                                                  "isReplyingsenderId"])]
-                                                      .fullName,
-                                                  style: TextStyle(
-                                                      color: primaryColor),
-                                                ),
-                                                Text(
-                                                  message.properties[
-                                                  "isReplyingbody"],
-                                                  style: TextStyle(
-                                                      color: primaryColor),
-                                                )
-                                              ],
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    _occupants[int.parse(message
+                                                                .properties[
+                                                            "isReplyingsenderId"])]
+                                                        .fullName,
+                                                    style: TextStyle(fontWeight: FontWeight.w900,
+                                                        color: primaryColor),
+                                                  ),
+                                                  Text(
+                                                    message.properties[
+                                                        "isReplyingbody"],
+                                                    style: TextStyle(
+                                                        color: primaryColor),
+                                                  )
+                                                ],
+                                              ),
+                                              margin: EdgeInsets.only(
+                                                  bottom:
+                                                      isLastMessageRight(index)
+                                                          ? 20.0
+                                                          : 10.0,
+                                                  right: 10.0),
+                                              padding: EdgeInsets.fromLTRB(
+                                                  15.0, 10.0, 15.0, 10.0),
+                                              decoration: BoxDecoration(
+                                                  color: greyColor3,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0))),
+
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+
+                                            Text(
+                                              message.body,
+                                              style: TextStyle(color: Colors.white),
                                             ),
-                                            color: greyColor3,
-                                          ),
-                                        Text(
-                                          message.body,
-                                          style: TextStyle(color: Colors.white),
+                                            if (message.properties["Pinned"] ==
+                                                "true")
+                                              Icon(Icons.push_pin_sharp,size: 20,color: greyColor3,),
+                                          ],
                                         ),
                                         // if (_cubeDialog.pinnedMessagesIds
                                         //     .contains(message.messageId))
-                                        if (message.properties["Pinned"] ==
-                                            "true")
-                                          Icon(Icons.push_pin_sharp),
+
                                         getDateWidget(),
                                       ]),
                                 ),
@@ -986,7 +1029,11 @@ class ChatScreenState extends State<ChatScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        "${_occupants[_replyMessage.senderId].fullName}",
+                        int.parse(_replyMessage
+                                    .properties["isReplyingsenderId"]) ==
+                                _cubeUser.id
+                            ? "You"
+                            : "${_occupants[_replyMessage.senderId].fullName}",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
