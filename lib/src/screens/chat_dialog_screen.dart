@@ -31,107 +31,89 @@ class ChatDialogScreen extends StatefulWidget {
 
 class _ChatDialogScreenState extends State<ChatDialogScreen> {
   static AppBar _appBar;
-  static Widget _body;
   bool _messageSelected = false;
   CubeMessage _message;
 
   @override
   void initState() {
     // TODO: implement initState
-    _body =
-        ChatScreen(widget._cubeUser, widget._cubeDialog, (CubeMessage message) {
-      setState(() {
-        _messageSelected = !_messageSelected;
-        _message = message;
-      });
-      _modifyAppBar(message);
-    });
+
     super.initState();
   }
 
-  Widget _buildBody() {
-    _body =
-        ChatScreen(widget._cubeUser, widget._cubeDialog, (CubeMessage message) {
-      setState(() {
-        _messageSelected = !_messageSelected;
-        _message = message;
-      });
-      _modifyAppBar(message);
+  Widget _setAppBar() {
+    setState(() {
+      _appBar = AppBar(
+        title: Text(
+          widget._cubeDialog.name != null ? widget._cubeDialog.name : '',
+        ),
+        centerTitle: false,
+        actions: <Widget>[
+          IconButton(
+            onPressed: () => _chatDetails(context),
+            icon: Icon(
+              Icons.info_outline,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      );
     });
-    return _body;
+
+    return _appBar;
   }
 
-  Widget _setAppBar() {
-    _appBar = AppBar(
-      title: Text(
-        widget._cubeDialog.name != null ? widget._cubeDialog.name : '',
-      ),
-      centerTitle: false,
-      actions: <Widget>[
-        IconButton(
-          onPressed: () => _chatDetails(context),
-          icon: Icon(
-            Icons.info_outline,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
+  Widget _modifyAppBar() {
+    setState(() {
+      _appBar = AppBar(
+        actions: [
+          IconButton(
+              onPressed: () async {
+                List<String> ids = [_message.messageId];
+                bool force =
+                    true; // true - to delete everywhere, false - to delete for himself
+                setState(() {
+                  _messageSelected = false;
+                });
+                await deleteMessages(ids, force).then((deleteItemsResult) {
+                  print(deleteItemsResult);
+                  print(deleteItemsResult.successfullyDeleted);
+                }).catchError((error) {});
+              },
+              icon: Icon(Icons.delete)),
+          IconButton(
+            onPressed: _pinnedMessages(_message.messageId),
+            icon: widget._cubeDialog.pinnedMessagesIds
+                    .contains(_message.messageId)
+                ? Icon(Icons.push_pin_sharp)
+                : Icon(Icons.push_pin_outlined),
+          )
+        ],
+      );
+    });
+
     return _appBar;
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_messageSelected) {
-          setState(() {
-            _messageSelected = false;
-          });
-          return Future.value(false);
-        }
-        return Future.value(true);
-      },
-      child: Scaffold(
-          appBar: _messageSelected ? _modifyAppBar(_message) : _setAppBar(),
-          body: _body),
-    );
-  }
-
-  Widget _modifyAppBar(CubeMessage message) {
-    return _appBar = AppBar(
-      actions: [
-        IconButton(
-            onPressed: () async {
-              List<String> ids = [_message.messageId];
-              bool force =
-                  true; // true - to delete everywhere, false - to delete for himself
-              setState(() {
-                _messageSelected = false;
-              });
-              await deleteMessages(ids, force).then((deleteItemsResult) {
-                setState(() {
-                  _body = ChatScreen(widget._cubeUser, widget._cubeDialog,
-                      (CubeMessage message) {
-                    setState(() {
-                      _messageSelected = !_messageSelected;
-                      _message = message;
-                    });
-                    _modifyAppBar(message);
-                  });
-                });
-                print(deleteItemsResult);
-                print(deleteItemsResult.successfullyDeleted);
-              }).catchError((error) {});
-            },
-            icon: Icon(Icons.delete)),
-        IconButton(
-          onPressed: _pinnedMessages(message.messageId),
-          icon: widget._cubeDialog.pinnedMessagesIds.contains(message.messageId)
-              ? Icon(Icons.push_pin_sharp)
-              : Icon(Icons.push_pin_outlined),
-        )
-      ],
+    log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+    print(_messageSelected);
+    log("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+    return Scaffold(
+      appBar: _messageSelected ? _modifyAppBar() : _setAppBar(),
+      body: ChatScreen(widget._cubeUser, widget._cubeDialog,
+          (CubeMessage message) {
+        setState(() {
+          _messageSelected = !_messageSelected;
+          _message = message;
+        });
+        _modifyAppBar();
+        log("///////////////////////////////////////////////");
+        print(_messageSelected);
+        log("///////////////////////////////////////////////");
+        // _modifyAppBar();
+      }),
     );
   }
 
@@ -141,19 +123,18 @@ class _ChatDialogScreenState extends State<ChatDialogScreen> {
     if (pinned.contains(_message.messageId)) {
       setState(() {
         _message.properties["Pinned"] = "false";
+        _messageSelected = false;
       });
       updateDialogParams.deletePinnedMsgIds = [_message.messageId].toSet();
       pinned.remove(_message.messageId);
     } else {
       setState(() {
         _message.properties["Pinned"] = "true";
+        _messageSelected = false;
       });
       pinned.add(_message.messageId);
       updateDialogParams.addPinnedMsgIds = [_message.messageId].toSet();
     }
-    setState(() {
-      _messageSelected = false;
-    });
     updateDialog(widget._cubeDialog.dialogId,
             updateDialogParams.getUpdateDialogParams())
         .then((dialog) {
@@ -530,24 +511,24 @@ class ChatScreenState extends State<ChatScreen> {
       return result;
     }
 
-    bool isMe = message.senderId == _cubeUser.id;
     if (message.senderId == _cubeUser.id) {
-      print(
-          "***********************************************************************pinned 2******************************************************");
-      print(message.properties);
+      // print(
+      //     "***********************************************************************pinned 2******************************************************");
+      // print(message.properties);
       // Right (own message)
       return Column(
         children: <Widget>[
           isHeaderView() ? getHeaderDateWidget() : SizedBox.shrink(),
-          InkWell(
-            onLongPress: () => _modifyAppBar(message), //_modifyAppBar(message),
-            child: SwipeTo(
-              onLeftSwipe: () {
-                setState(() {
-                  _replyMessage = message;
-                  _isReplying = true;
-                });
-              },
+          // Added by chinmay for reply to message
+          SwipeTo(
+            onRightSwipe: () {
+              setState(() {
+                _replyMessage = message;
+                _isReplying = true;
+              });
+            },
+            child: InkWell(
+              onLongPress: () => _modifyAppBar(message),
               child: Row(
                 children: <Widget>[
                   message.attachments?.isNotEmpty ?? false
@@ -632,56 +613,59 @@ class ChatScreenState extends State<ChatScreen> {
                                       if (message.properties["isReplying"] ==
                                           "true")
                                         Container(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  int.parse(message.properties[
-                                                              "isReplyingsenderId"]) ==
-                                                          _cubeUser.id
-                                                      ? "You"
-                                                      : _occupants[int.parse(message
-                                                                  .properties[
-                                                              "isReplyingsenderId"])]
-                                                          .fullName,
-                                                  style: TextStyle(
-                                                      color: greyColor3),
-                                                ),
-                                                Text(
-                                                  message.properties[
-                                                      "isReplyingbody"],
-                                                  style: TextStyle(
-                                                      color: greyColor3),
-                                                )
-                                              ],
-                                            ),
-                                            margin: EdgeInsets.only(
-                                                bottom:
-                                                    isLastMessageRight(index)
-                                                        ? 20.0
-                                                        : 10.0,
-                                                right: 10.0),
-                                            padding: EdgeInsets.fromLTRB(
-                                                15.0, 10.0, 15.0, 10.0),
-                                            decoration: BoxDecoration(
-                                                color: primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        8.0))),
-
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                int.parse(message.properties[
+                                                            "isReplyingsenderId"]) ==
+                                                        _cubeUser.id
+                                                    ? "You"
+                                                    : _occupants[int.parse(message
+                                                                .properties[
+                                                            "isReplyingsenderId"])]
+                                                        .fullName,
+                                                style: TextStyle(
+                                                    color: greyColor3),
+                                              ),
+                                              Text(
+                                                message.properties[
+                                                    "isReplyingbody"],
+                                                style: TextStyle(
+                                                    color: greyColor3),
+                                              )
+                                            ],
+                                          ),
+                                          margin: EdgeInsets.only(
+                                              bottom: isLastMessageRight(index)
+                                                  ? 20.0
+                                                  : 10.0,
+                                              right: 10.0),
+                                          padding: EdgeInsets.fromLTRB(
+                                              15.0, 10.0, 15.0, 10.0),
+                                          decoration: BoxDecoration(
+                                            color: primaryColor,
+                                            borderRadius:
+                                                BorderRadius.circular(8.0),
+                                          ),
+                                        ),
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
                                             message.body,
-                                            style: TextStyle(color: primaryColor),
+                                            style:
+                                                TextStyle(color: primaryColor),
                                           ),
                                           if (message.properties["Pinned"] ==
                                               "true")
-                                            Icon(Icons.push_pin_sharp,size: 20,),
+                                            Icon(
+                                              Icons.push_pin_sharp,
+                                              size: 20,
+                                            ),
                                         ],
                                       ),
-
                                       getDateWidget(),
                                       getReadDeliveredWidget(),
                                     ]),
@@ -711,24 +695,25 @@ class ChatScreenState extends State<ChatScreen> {
         ],
       );
     } else {
-      print(
-          "***********************************************************************pinned******************************************************");
-      print(message.properties);
+      // print(
+      //     "***********************************************************************pinned******************************************************");
+      // print(message.properties);
       // Left (opponent message)
       markAsReadIfNeed();
       return Container(
         child: Column(
           children: <Widget>[
             isHeaderView() ? getHeaderDateWidget() : SizedBox.shrink(),
-            InkWell(
-              onLongPress: () => _modifyAppBar(message),
-              child: SwipeTo(
-                onRightSwipe: () {
-                  setState(() {
-                    _replyMessage = message;
-                    _isReplying = true;
-                  });
-                },
+            // Added by Chinmay for reply to message
+            SwipeTo(
+              onRightSwipe: () {
+                setState(() {
+                  _replyMessage = message;
+                  _isReplying = true;
+                });
+              },
+              child: InkWell(
+                onLongPress: () => _modifyAppBar(message),
                 child: Row(
                   children: <Widget>[
                     Material(
@@ -833,14 +818,17 @@ class ChatScreenState extends State<ChatScreen> {
                                             "true")
                                           Container(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     _occupants[int.parse(message
                                                                 .properties[
                                                             "isReplyingsenderId"])]
                                                         .fullName,
-                                                    style: TextStyle(fontWeight: FontWeight.w900,
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w900,
                                                         color: primaryColor),
                                                   ),
                                                   Text(
@@ -868,14 +856,18 @@ class ChatScreenState extends State<ChatScreen> {
                                         Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-
                                             Text(
                                               message.body,
-                                              style: TextStyle(color: Colors.white),
+                                              style: TextStyle(
+                                                  color: Colors.white),
                                             ),
                                             if (message.properties["Pinned"] ==
                                                 "true")
-                                              Icon(Icons.push_pin_sharp,size: 20,color: greyColor3,),
+                                              Icon(
+                                                Icons.push_pin_sharp,
+                                                size: 20,
+                                                color: greyColor3,
+                                              ),
                                           ],
                                         ),
                                         // if (_cubeDialog.pinnedMessagesIds
@@ -1011,6 +1003,7 @@ class ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // Added by Chinmay for reply to message
   Widget buildReplyMessage() {
     if (_isReplying)
       return IntrinsicHeight(
@@ -1059,6 +1052,7 @@ class ChatScreenState extends State<ChatScreen> {
       ));
   }
 
+  // Added by Chinmay for reply to message
   Widget buildReply() => Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
